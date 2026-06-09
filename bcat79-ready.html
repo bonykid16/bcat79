@@ -1,0 +1,1076 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black"/>
+<meta name="apple-mobile-web-app-title" content="BCAT 79"/>
+<meta name="theme-color" content="#1a1f2e"/>
+<title>BCAT 79</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#f0f4f8;
+  --surface:#ffffff;
+  --border:#dde3ec;
+  --blue:#2563eb;
+  --blue-light:#eff6ff;
+  --green:#16a34a;
+  --green-light:#f0fdf4;
+  --green-border:#86efac;
+  --red:#dc2626;
+  --red-light:#fef2f2;
+  --red-border:#fca5a5;
+  --purple:#7c3aed;
+  --purple-light:#f5f3ff;
+  --gray:#64748b;
+  --gray-light:#f8fafc;
+  --text:#1e293b;
+  --text-mid:#475569;
+  --text-soft:#94a3b8;
+  --navy:#1a1f2e;
+  --st:env(safe-area-inset-top);
+  --sb:env(safe-area-inset-bottom);
+}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:-apple-system,sans-serif}
+button{font-family:-apple-system,sans-serif;cursor:pointer;border:none;background:none;color:inherit}
+input,select,textarea{font-family:-apple-system,sans-serif;color:var(--text);outline:none}
+
+/* ── Shell ── */
+#app{display:flex;flex-direction:column;height:100%;height:100dvh}
+#hdr{
+  padding:calc(var(--st) + 14px) 18px 14px;
+  background:var(--navy);
+  display:flex;align-items:center;gap:12px;flex-shrink:0;
+}
+.logo{width:44px;height:44px;border-radius:12px;background:#2563eb;
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;font-weight:900;color:#fff;flex-shrink:0}
+.hdr-text h1{font-size:18px;font-weight:700;color:#fff}
+.hdr-text p{font-size:12px;color:#94a3b8;margin-top:1px}
+
+#content{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+#nav{
+  display:flex;background:var(--surface);
+  border-top:2px solid var(--border);
+  padding-bottom:var(--sb);flex-shrink:0;
+}
+.nb{
+  flex:1;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;padding:12px 4px;gap:4px;cursor:pointer;
+}
+.nb em{font-size:26px;font-style:normal;line-height:1}
+.nb span{font-size:10px;font-weight:600;color:var(--text-soft);letter-spacing:.3px}
+.nb.active span{color:var(--blue)}
+.nb.active em{filter:none}
+
+/* ── Pages ── */
+.page{display:none;padding:16px;padding-bottom:100px}
+.page.active{display:block}
+
+/* ── Cards ── */
+.card{background:var(--surface);border:1.5px solid var(--border);border-radius:16px;padding:18px;margin-bottom:14px;box-shadow:0 1px 4px #0000000a}
+.card-title{font-size:11px;font-weight:700;color:var(--gray);text-transform:uppercase;letter-spacing:1px;margin-bottom:14px}
+
+/* ── Buttons ── */
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;padding:16px;
+  border-radius:12px;font-size:16px;font-weight:600;cursor:pointer;border:none;
+  font-family:-apple-system,sans-serif;width:100%;transition:opacity .15s}
+.btn:active{opacity:.75}
+.btn-blue{background:var(--blue);color:#fff}
+.btn-red{background:var(--red-light);color:var(--red);border:1.5px solid var(--red-border)}
+.btn-ghost{background:var(--gray-light);color:var(--text-mid);border:1.5px solid var(--border)}
+.btn-sm{padding:10px 16px;font-size:14px;width:auto;border-radius:10px}
+
+/* ── Year Tabs ── */
+.ytabs{display:flex;gap:8px;margin-bottom:16px}
+.ytab{flex:1;padding:12px 6px;border-radius:10px;font-size:15px;font-weight:600;
+  text-align:center;cursor:pointer;background:var(--surface);
+  border:1.5px solid var(--border);color:var(--text-mid)}
+.ytab.active{background:var(--blue);border-color:var(--blue);color:#fff}
+
+/* ── Big Balance ── */
+.bal-card{background:var(--navy);border-radius:16px;padding:22px;margin-bottom:14px}
+.bal-label{font-size:12px;color:#94a3b8;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px}
+.bal-amount{font-size:38px;font-weight:800;color:#fff;letter-spacing:-1px;line-height:1.1}
+.bal-row{display:flex;justify-content:space-between;align-items:center;margin-top:10px;
+  padding-top:10px;border-top:1px solid #2d3748}
+.bal-row-label{font-size:13px;color:#94a3b8}
+.bal-row-val{font-size:15px;font-weight:700;color:#fff}
+
+/* ── Section Row (dashboard) ── */
+.sec-row{display:flex;align-items:center;padding:12px 0;border-bottom:1.5px solid var(--border);gap:10px}
+.sec-row:last-child{border-bottom:none}
+.sec-name{font-size:15px;font-weight:600;color:var(--text);width:76px;flex-shrink:0}
+.sec-dots{display:flex;flex-wrap:wrap;gap:3px;flex:1}
+.sec-dot{width:16px;height:16px;border-radius:4px;background:#e2e8f0;display:flex;align-items:center;justify-content:center}
+.sec-dot.paid{background:#bbf7d0}
+.sec-dot.paid::after{content:'✓';font-size:9px;color:#16a34a;font-weight:900}
+.sec-total{font-size:14px;font-weight:700;color:var(--purple);white-space:nowrap;width:72px;text-align:right}
+
+/* ── Grid (contributions) ── */
+.grid-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.cg{border-collapse:collapse;width:100%;white-space:nowrap}
+.cg th{padding:8px 4px;color:var(--text-soft);font-size:10px;letter-spacing:.6px;
+  text-transform:uppercase;border-bottom:2px solid var(--border);font-weight:600;text-align:center}
+.cg th:first-child{text-align:left;padding-left:4px;min-width:56px}
+.cg td{padding:6px 3px;border-bottom:1px solid #f1f5f9;text-align:center}
+.cg td:first-child{text-align:left;padding-left:4px;font-size:13px;font-weight:600;color:var(--text)}
+.cg tr:nth-child(even) td{background:#fafbfc}
+.cb{width:28px;height:26px;border-radius:6px;background:#f1f5f9;border:1.5px solid #e2e8f0;
+  display:inline-flex;align-items:center;justify-content:center;cursor:pointer;font-size:13px;font-weight:700}
+.cb.paid{background:#dcfce7;border-color:#86efac;color:#16a34a}
+.cb.unpaid{color:#cbd5e1}
+.grand-row td{background:#f8fafc!important;font-weight:700;font-size:10px;color:var(--gray);
+  padding-top:10px;border-top:2px solid var(--border)}
+
+/* ── Section Cards ── */
+.mcards{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:4px}
+.mc{background:var(--surface);border:1.5px solid var(--border);border-radius:14px;padding:14px;box-shadow:0 1px 3px #0000000a}
+.mc-grand{background:var(--purple-light);border-color:#c4b5fd}
+.mdots{display:flex;flex-wrap:wrap;gap:3px;margin-top:8px}
+.mdot{width:10px;height:10px;border-radius:3px;background:#e2e8f0}
+.mdot.paid{background:#86efac}
+
+/* ── Ledger ── */
+.li{background:var(--surface);border:1.5px solid var(--border);border-radius:14px;
+  padding:14px;margin-bottom:10px;box-shadow:0 1px 3px #0000000a}
+.li-name{font-size:17px;font-weight:700;color:var(--text);margin-bottom:4px}
+.li-date{font-size:13px;color:var(--text-soft);margin-bottom:6px}
+.li-bottom{display:flex;justify-content:space-between;align-items:center;margin-top:10px;flex-wrap:wrap;gap:8px}
+.li-bal{font-size:13px;font-weight:600}
+.li-actions{display:flex;gap:8px}
+
+/* ── Badge ── */
+.badge{display:inline-block;padding:4px 10px;border-radius:20px;font-size:12px;font-weight:600}
+.badge-donation{background:#dbeafe;color:#1d4ed8}
+.badge-help{background:#fef9c3;color:#854d0e}
+.badge-personal{background:#f3e8ff;color:#6b21a8}
+
+/* ── Messages ── */
+.msg{border-radius:10px;padding:12px 14px;font-size:14px;font-weight:600;margin-bottom:12px;display:none}
+.msg.show{display:block}
+.msg.ok{background:var(--green-light);color:var(--green);border:1.5px solid var(--green-border)}
+.msg.err{background:var(--red-light);color:var(--red);border:1.5px solid var(--red-border)}
+
+/* ── Modal ── */
+.overlay{position:fixed;inset:0;background:#0007;z-index:100;display:none;align-items:flex-end}
+.overlay.open{display:flex}
+.sheet{background:var(--surface);border-top:2px solid var(--border);
+  border-radius:24px 24px 0 0;padding:24px 20px;
+  padding-bottom:calc(24px + var(--sb));
+  width:100%;max-height:92dvh;overflow-y:auto;
+  -webkit-overflow-scrolling:touch;animation:su .25s ease}
+@keyframes su{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.sh{width:44px;height:5px;background:var(--border);border-radius:3px;margin:0 auto 20px}
+.shdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+.stitle{font-size:20px;font-weight:700;color:var(--text)}
+.sclose{font-size:28px;color:var(--text-soft);padding:4px 8px;line-height:1}
+
+/* ── Form Fields ── */
+.field{margin-bottom:16px}
+.field label{display:block;font-size:13px;font-weight:600;color:var(--text-mid);margin-bottom:8px}
+.field input,.field select,.field textarea{
+  width:100%;background:var(--gray-light);border:1.5px solid var(--border);
+  border-radius:12px;padding:14px;color:var(--text);
+  font-size:16px;font-family:-apple-system,sans-serif}
+.field textarea{height:80px;resize:none}
+.field input:focus,.field select:focus{border-color:var(--blue);background:#fff}
+.fixed-badge{background:var(--green-light);border:1.5px solid var(--green-border);
+  border-radius:10px;padding:12px 14px;font-size:14px;color:var(--green);
+  font-weight:600;margin-bottom:16px}
+
+/* ── Pickers ── */
+.pr{display:flex;gap:8px;flex-wrap:wrap}
+.pc{padding:12px 16px;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;
+  background:var(--gray-light);border:1.5px solid var(--border);color:var(--text-mid);
+  font-family:-apple-system,sans-serif;min-width:44px;text-align:center}
+.pc.active{background:var(--blue);border-color:var(--blue);color:#fff}
+.mgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.srow{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.sc{padding:14px;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer;
+  text-align:center;background:var(--gray-light);border:1.5px solid var(--border);
+  color:var(--text-mid);font-family:-apple-system,sans-serif}
+.sc.sp.active{background:var(--green-light);border-color:var(--green);color:var(--green)}
+.sc.su.active{background:var(--red-light);border-color:var(--red);color:var(--red)}
+.cr{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.cc{padding:12px 4px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;
+  text-align:center;background:var(--gray-light);border:1.5px solid var(--border);
+  color:var(--text-mid);font-family:-apple-system,sans-serif}
+.cc.active{border-width:2px}
+
+/* ── FAB ── */
+.fab{position:fixed;bottom:calc(90px + var(--sb));right:20px;width:60px;height:60px;
+  border-radius:30px;background:var(--blue);display:flex;align-items:center;
+  justify-content:center;font-size:32px;color:#fff;line-height:1;
+  box-shadow:0 4px 20px #2563eb55;z-index:50;cursor:pointer;border:none;
+  transition:transform .15s}
+.fab:active{transform:scale(.92)}
+
+/* ── Loading ── */
+#loading{position:fixed;inset:0;background:var(--navy);display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:16px;z-index:200}
+.spin{width:44px;height:44px;border:4px solid #2d3748;border-top-color:#38bdf8;
+  border-radius:50%;animation:sp .7s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+#loading p{font-size:15px;color:#94a3b8}
+
+.divider{height:1.5px;background:var(--border);margin:14px 0}
+
+/* ── Header Action Buttons ── */
+.hdr-actions{display:flex;gap:8px;margin-left:auto;flex-shrink:0}
+.export-btn,.print-btn{
+  display:flex;align-items:center;justify-content:center;gap:6px;
+  padding:8px 12px;border-radius:10px;font-size:13px;font-weight:700;
+  border:none;cursor:pointer;flex-shrink:0;letter-spacing:.2px;
+  transition:opacity .15s;font-family:-apple-system,sans-serif;
+}
+.export-btn{background:#16a34a;color:#fff}
+.print-btn{background:#2563eb;color:#fff}
+.export-btn:active,.print-btn:active{opacity:.7}
+.export-btn .spin-sm,.print-btn .spin-sm{
+  width:14px;height:14px;border:2px solid #ffffff55;
+  border-top-color:#fff;border-radius:50%;
+  animation:sp .6s linear infinite;display:none
+}
+.export-btn.loading .spin-sm,.print-btn.loading .spin-sm{display:block}
+.export-btn.loading .ex-icon,.print-btn.loading .pr-icon{display:none}
+.grand-total-row{display:flex;justify-content:space-between;align-items:center;
+  padding:12px 0;border-top:2px solid var(--border);margin-top:4px}
+
+/* ── A4 Print Styles ── */
+@media print {
+  @page{size:A4 portrait;margin:15mm 12mm 15mm 12mm}
+  html,body{height:auto!important;overflow:visible!important;background:#fff!important}
+  #app,#content{height:auto!important;overflow:visible!important}
+  #hdr,#nav,#loading,.fab,.overlay,#cmsg,#cashmsg,
+  .btn,.li-actions,#contrib-ytabs,#dash-ytabs{display:none!important}
+  .page{display:none!important;padding:0!important}
+  .page.print-active{display:block!important}
+  .card{border:1px solid #ccc!important;box-shadow:none!important;
+    border-radius:4px!important;padding:10px!important;margin-bottom:10px!important}
+  .cg{font-size:10px!important;width:100%!important}
+  .cg th,.cg td{padding:4px 3px!important;font-size:10px!important}
+  .cb{width:22px!important;height:20px!important;font-size:11px!important;
+    border-radius:3px!important;pointer-events:none}
+  .mcards{grid-template-columns:repeat(4,1fr)!important;gap:6px!important}
+  .mc{padding:8px!important;border-radius:6px!important}
+  .bal-card{border-radius:6px!important;padding:14px!important;
+    -webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .li{border-radius:6px!important;padding:10px!important;margin-bottom:6px!important;
+    page-break-inside:avoid}
+  .print-hdr{display:block!important;font-family:Arial,sans-serif;
+    border-bottom:2px solid #1a1f2e;margin-bottom:14px;padding-bottom:10px}
+  .print-hdr h2{font-size:18px;font-weight:800;color:#1a1f2e;margin:0}
+  .print-hdr p{font-size:11px;color:#64748b;margin:3px 0 0}
+  .print-section-title{display:block!important;font-size:13px;font-weight:700;
+    color:#1a1f2e;margin:14px 0 8px;padding:6px 10px;
+    background:#f0f4f8;border-left:4px solid #2563eb;border-radius:0 4px 4px 0;
+    -webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .page-break{page-break-before:always}
+  .cb.paid{background:#dcfce7!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .sec-dot.paid{background:#bbf7d0!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .mdot.paid{background:#86efac!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+.print-hdr{display:none}
+.print-section-title{display:none}
+.page-break{}
+</style>
+</head>
+<body>
+
+<div id="loading">
+  <div class="spin"></div>
+  <p>Connecting…</p>
+</div>
+
+<div id="app" style="display:none">
+  <div id="hdr">
+    <div class="logo">79</div>
+    <div class="hdr-text">
+      <h1>BCAT Batch 79</h1>
+      <p>Contribution & Cash Manager</p>
+    </div>
+    <div class="hdr-actions">
+      <button class="print-btn" id="printBtn" onclick="printReport()" title="Print Report">
+        <span class="pr-icon">🖨️</span>
+        <div class="spin-sm"></div>
+      </button>
+      <button class="export-btn" id="exportBtn" onclick="exportExcel()" title="Export to Excel">
+        <span class="ex-icon">📥</span>
+        <div class="spin-sm"></div>
+      </button>
+    </div>
+  </div>
+
+  <div id="content">
+    <!-- Dashboard -->
+    <div class="page active" id="page-dashboard">
+      <div id="dash-ytabs" class="ytabs"></div>
+      <div id="dash-body"></div>
+    </div>
+
+    <!-- Contributions -->
+    <div class="page" id="page-contributions">
+      <div class="print-hdr" id="print-hdr-contrib">
+        <h2>BCAT Batch 79 — Contributions Report</h2>
+        <p id="print-contrib-subtitle"></p>
+      </div>
+      <div id="cmsg" class="msg"></div>
+      <div id="contrib-ytabs" class="ytabs"></div>
+      <div class="card" style="padding:14px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+          <span class="card-title" style="margin:0">Payment Grid</span>
+          <span id="cgrand" style="color:var(--purple);font-weight:700;font-size:15px"></span>
+        </div>
+        <div class="grid-wrap"><table class="cg" id="cgrid"></table></div>
+      </div>
+      <div id="scards" class="mcards"></div>
+    </div>
+
+    <!-- Cash -->
+    <div class="page" id="page-cash">
+      <div class="print-hdr" id="print-hdr-cash">
+        <h2>BCAT Batch 79 — Cash Disbursement Ledger</h2>
+        <p id="print-cash-subtitle"></p>
+      </div>
+      <div id="cashmsg" class="msg"></div>
+      <div class="bal-card">
+        <div class="bal-label">Available Balance</div>
+        <div class="bal-amount" id="cashbal">—</div>
+        <div class="bal-row">
+          <span class="bal-row-label">Opening Balance</span>
+          <span class="bal-row-val" id="cashopen">—</span>
+        </div>
+        <div class="bal-row">
+          <span class="bal-row-label">Total Released</span>
+          <span class="bal-row-val" style="color:#f87171" id="cashrel">—</span>
+        </div>
+        <div class="bal-row">
+          <span class="bal-row-label">No. of Transactions</span>
+          <span class="bal-row-val" id="cashcnt">0</span>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Disbursement Ledger</div>
+        <div id="ledger"></div>
+      </div>
+    </div>
+  </div>
+
+  <nav id="nav">
+    <button class="nb active" onclick="goTab('dashboard',this)"><em>📊</em><span>Dashboard</span></button>
+    <button class="nb" onclick="goTab('contributions',this)"><em>💳</em><span>Contributions</span></button>
+    <button class="nb" onclick="goTab('cash',this)"><em>💰</em><span>Cash</span></button>
+  </nav>
+</div>
+
+<button class="fab" id="fab" onclick="openFab()">＋</button>
+
+<!-- Contribution Modal -->
+<div class="overlay" id="mod-contrib" onclick="closeModal('mod-contrib')">
+  <div class="sheet" onclick="event.stopPropagation()">
+    <div class="sh"></div>
+    <div class="shdr">
+      <span class="stitle">Mark Payment</span>
+      <button class="sclose" onclick="closeModal('mod-contrib')">×</button>
+    </div>
+    <div class="fixed-badge">✓ Fixed amount: <strong>₱1,000.00</strong> per section</div>
+    <div class="field">
+      <label>Section Number</label>
+      <div class="pr" id="msec"></div>
+    </div>
+    <div class="field">
+      <label>Month</label>
+      <div class="mgrid" id="mmon"></div>
+    </div>
+    <div class="field">
+      <label>Status</label>
+      <div class="srow">
+        <button class="sc sp active" id="sbtn-paid" onclick="setStatus(true)">✓ Paid</button>
+        <button class="sc su" id="sbtn-unpaid" onclick="setStatus(false)">✗ Unpaid</button>
+      </div>
+    </div>
+    <div id="cmodmsg" class="msg"></div>
+    <button class="btn btn-blue" onclick="saveContrib()">Save</button>
+  </div>
+</div>
+
+<!-- Cash Modal -->
+<div class="overlay" id="mod-cash" onclick="closeModal('mod-cash')">
+  <div class="sheet" onclick="event.stopPropagation()">
+    <div class="sh"></div>
+    <div class="shdr">
+      <span class="stitle" id="cmod-title">Record Payment</span>
+      <button class="sclose" onclick="closeModal('mod-cash')">×</button>
+    </div>
+    <div class="field"><label>Date</label><input type="date" id="f-date"/></div>
+    <div class="field"><label>Amount (₱)</label><input type="number" id="f-amt" placeholder="0.00" inputmode="decimal"/></div>
+    <div class="field"><label>Recipient Name</label><input type="text" id="f-rec" placeholder="Full name"/></div>
+    <div class="field">
+      <label>Category</label>
+      <div class="cr" id="catpicker"></div>
+    </div>
+    <div class="field"><label>Notes (optional)</label><textarea id="f-notes" placeholder="Write notes here…"></textarea></div>
+    <div id="cashmodmsg" class="msg"></div>
+    <button class="btn btn-blue" onclick="saveCash()" style="margin-bottom:10px">Save</button>
+    <button class="btn btn-ghost" id="cancel-cash-btn" onclick="closeModal('mod-cash')" style="display:none">Cancel</button>
+  </div>
+</div>
+
+<script>
+// ── Supabase config ───────────────────────────────────────────────
+const SB_URL  = 'https://ddftcdnxufzeeogxcfnl.supabase.co';
+const SB_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRkZnRjZG54dWZ6ZWVvZ3hjZm5sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA5MDY4NDksImV4cCI6MjA5NjQ4Mjg0OX0.cLG53_NE6HP8mue-KGp3apKcGeAfucnr076GdXVs4RQ';
+const HDRS    = {'apikey':SB_ANON,'Authorization':'Bearer '+SB_ANON,'Content-Type':'application/json','Prefer':'return=representation'};
+
+// ── DB helpers (pure fetch, no library) ──────────────────────────
+async function dbGet(table, params) {
+  const qs = Object.entries(params||{}).map(([k,v])=>k+'='+encodeURIComponent(v)).join('&');
+  const r = await fetch(SB_URL+'/rest/v1/'+table+'?'+qs, {headers:HDRS});
+  if (!r.ok) throw new Error(await r.text());
+  return r.json();
+}
+async function dbUpsert(table, body) {
+  const r = await fetch(SB_URL+'/rest/v1/'+table, {
+    method:'POST',
+    headers:{...HDRS,'Prefer':'resolution=merge-duplicates,return=representation'},
+    body:JSON.stringify(body)
+  });
+  if (!r.ok) throw new Error(await r.text());
+  const d = await r.json();
+  return Array.isArray(d) ? d[0] : d;
+}
+async function dbInsert(table, body) {
+  const r = await fetch(SB_URL+'/rest/v1/'+table, {
+    method:'POST', headers:HDRS, body:JSON.stringify(body)
+  });
+  if (!r.ok) throw new Error(await r.text());
+  const d = await r.json();
+  return Array.isArray(d) ? d[0] : d;
+}
+async function dbUpdate(table, id, body) {
+  const r = await fetch(SB_URL+'/rest/v1/'+table+'?id=eq.'+id, {
+    method:'PATCH', headers:HDRS, body:JSON.stringify(body)
+  });
+  if (!r.ok) throw new Error(await r.text());
+  const d = await r.json();
+  return Array.isArray(d) ? d[0] : d;
+}
+async function dbDelete(table, id) {
+  const r = await fetch(SB_URL+'/rest/v1/'+table+'?id=eq.'+id, {method:'DELETE',headers:HDRS});
+  if (!r.ok) throw new Error(await r.text());
+}
+
+// ── Constants ─────────────────────────────────────────────────────
+const MONTHS   = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const SECTIONS = [1,2,3,4,5,6,7,8];
+const CATS     = ['Donation','Help','Personal Use'];
+const FIXED    = 1000;
+const YEARS    = [2024,2025,2026,2027];
+const OPENING  = 46259.35;
+
+const CATC = {
+  'Donation':    {bg:'#dbeafe',fg:'#1d4ed8',cls:'badge-donation'},
+  'Help':        {bg:'#fef9c3',fg:'#854d0e',cls:'badge-help'},
+  'Personal Use':{bg:'#f3e8ff',fg:'#6b21a8',cls:'badge-personal'},
+};
+
+const peso = v => '₱' + Number(v).toLocaleString('en-PH',{minimumFractionDigits:2,maximumFractionDigits:2});
+const today = () => new Date().toISOString().slice(0,10);
+
+// ── State ──────────────────────────────────────────────────────────
+let contribs=[], cashTxns=[];
+let activeYear=new Date().getFullYear(), activeTab='dashboard';
+let cashEditId=null, mPaid=true, mSec=1, mMon=MONTHS[new Date().getMonth()], mCat='Donation';
+
+// ── Boot ──────────────────────────────────────────────────────────
+async function boot() {
+  try {
+    const [cr, tr] = await Promise.all([
+      dbGet('contributions', {year:'eq.'+activeYear, order:'section.asc,month.asc'}),
+      dbGet('cash_transactions', {order:'txn_date.asc,created_at.asc'}),
+    ]);
+    contribs = cr;
+    cashTxns = tr;
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('app').style.display = 'flex';
+    buildAll();
+  } catch(e) {
+    document.getElementById('loading').innerHTML =
+      '<div style="padding:30px;text-align:center;max-width:340px">' +
+      '<div style="font-size:48px;margin-bottom:16px">⚠️</div>' +
+      '<div style="color:#f87171;font-size:15px;line-height:1.7;margin-bottom:20px">' + e.message + '</div>' +
+      '<button style="background:#2563eb;color:#fff;border:none;border-radius:12px;padding:14px 28px;font-size:16px;font-weight:600;cursor:pointer" onclick="location.reload()">Try Again</button>' +
+      '</div>';
+  }
+}
+
+function buildAll() { buildYearTabs(); buildDash(); buildContrib(); buildCash(); buildPickers(); }
+
+// ── Year tabs ─────────────────────────────────────────────────────
+function buildYearTabs() {
+  ['dash','contrib'].forEach(p => {
+    document.getElementById(p+'-ytabs').innerHTML = YEARS.map(y =>
+      `<div class="ytab${y===activeYear?' active':''}" onclick="setYear(${y})">${y}</div>`
+    ).join('');
+  });
+}
+
+// ── Table data ────────────────────────────────────────────────────
+function getTableData() {
+  return SECTIONS.map(s => {
+    const row = {section:s, paidCount:0};
+    MONTHS.forEach(m => {
+      const c = contribs.find(x => x.section===s && x.month===m);
+      row[m] = c ? c.paid : false;
+      if (row[m]) row.paidCount++;
+    });
+    row.total = row.paidCount * FIXED;
+    return row;
+  });
+}
+
+// ── Dashboard ─────────────────────────────────────────────────────
+function buildDash() {
+  const td = getTableData();
+  const grandTotal = td.reduce((s,r)=>s+r.total,0);
+  const totalOut   = cashTxns.reduce((s,t)=>s+Number(t.amount),0);
+  const cashBal    = OPENING - totalOut;
+
+  let h = `<div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+      <span class="card-title" style="margin:0">💳 Contributions — ${activeYear}</span>
+      <span style="color:var(--purple);font-weight:700;font-size:15px">${peso(grandTotal)}</span>
+    </div>`;
+
+  td.forEach(row => {
+    h += `<div class="sec-row">
+      <span class="sec-name">Section ${row.section}</span>
+      <div class="sec-dots">`;
+    MONTHS.forEach(m => {
+      h += `<div class="sec-dot${row[m]?' paid':''}"></div>`;
+    });
+    h += `</div>
+      <span class="sec-total">${peso(row.total)}</span>
+    </div>`;
+  });
+
+  h += `<div class="grand-total-row">
+    <span style="font-size:14px;font-weight:600;color:var(--text-mid)">Grand Total</span>
+    <span style="font-size:18px;font-weight:800;color:var(--purple)">${peso(grandTotal)}</span>
+  </div></div>`;
+
+  // Cash card
+  h += `<div class="bal-card">
+    <div class="bal-label">💰 Cash on Hand</div>
+    <div class="bal-amount">${peso(cashBal)}</div>
+    <div class="bal-row"><span class="bal-row-label">Opening Balance</span><span class="bal-row-val">${peso(OPENING)}</span></div>
+    <div class="bal-row"><span class="bal-row-label">Total Released</span><span class="bal-row-val" style="color:#f87171">−${peso(totalOut)}</span></div>
+    <div class="bal-row"><span class="bal-row-label">Transactions</span><span class="bal-row-val">${cashTxns.length}</span></div>
+  </div>`;
+
+  // Recent
+  if (cashTxns.length) {
+    h += `<div class="card"><div class="card-title">Recent Disbursements</div>`;
+    cashTxns.slice(-3).reverse().forEach(t => {
+      const cs = CATC[t.category]||CATC.Donation;
+      h += `<div style="display:flex;justify-content:space-between;align-items:flex-start;padding:12px 0;border-bottom:1.5px solid var(--border)">
+        <div>
+          <div style="font-size:16px;font-weight:700">${t.recipient}</div>
+          <div style="font-size:13px;color:var(--text-soft);margin:3px 0">${t.txn_date}</div>
+          <span class="badge ${cs.cls}">${t.category}</span>
+        </div>
+        <span style="color:var(--red);font-weight:800;font-size:17px">−${peso(t.amount)}</span>
+      </div>`;
+    });
+    h += `</div>`;
+  }
+
+  document.getElementById('dash-body').innerHTML = h;
+}
+
+// ── Contributions ─────────────────────────────────────────────────
+function buildContrib() {
+  const td = getTableData();
+  const grandTotal = td.reduce((s,r)=>s+r.total,0);
+  const mc = {};
+  MONTHS.forEach(m => { mc[m] = td.filter(r=>r[m]).length; });
+  document.getElementById('cgrand').textContent = peso(grandTotal);
+
+  let th = '<thead><tr><th>Section</th>';
+  MONTHS.forEach(m => th += `<th>${m}</th>`);
+  th += '<th>Paid</th><th>Total</th></tr></thead>';
+
+  let tb = '<tbody>';
+  td.forEach(row => {
+    tb += `<tr><td>Sec ${row.section}</td>`;
+    MONTHS.forEach(m => {
+      tb += `<td><button class="cb ${row[m]?'paid':'unpaid'}" onclick="toggleCell(${row.section},'${m}')">${row[m]?'✓':'—'}</button></td>`;
+    });
+    tb += `<td style="color:var(--blue);font-weight:700;font-size:12px">${row.paidCount}/12</td>
+           <td style="color:var(--purple);font-weight:700;font-size:12px">${peso(row.total)}</td></tr>`;
+  });
+  tb += `<tr class="grand-row"><td>Total</td>`;
+  MONTHS.forEach(m => tb += `<td style="color:${mc[m]>0?'var(--blue)':'#cbd5e1'};font-size:11px">${mc[m]}</td>`);
+  tb += `<td colspan="2" style="color:var(--purple);font-weight:800">${peso(grandTotal)}</td></tr></tbody>`;
+  document.getElementById('cgrid').innerHTML = th + tb;
+
+  let cards = '';
+  td.forEach(row => {
+    const dots = MONTHS.map(m=>`<div class="mdot${row[m]?' paid':''}"></div>`).join('');
+    cards += `<div class="mc">
+      <div style="font-size:11px;color:var(--gray);font-weight:600;margin-bottom:4px">Section ${row.section}</div>
+      <div style="font-size:17px;font-weight:800;color:var(--purple)">${peso(row.total)}</div>
+      <div style="font-size:12px;color:var(--green);margin-top:2px">${row.paidCount}/12 paid</div>
+      <div class="mdots">${dots}</div>
+    </div>`;
+  });
+  const totalPaid = td.reduce((s,r)=>s+r.paidCount,0);
+  cards += `<div class="mc mc-grand">
+    <div style="font-size:11px;color:var(--purple);font-weight:600;margin-bottom:4px">All Sections</div>
+    <div style="font-size:17px;font-weight:800;color:var(--purple)">${peso(grandTotal)}</div>
+    <div style="font-size:12px;color:#7c3aed;margin-top:2px">${totalPaid} payments total</div>
+  </div>`;
+  document.getElementById('scards').innerHTML = cards;
+}
+
+// ── Cash ──────────────────────────────────────────────────────────
+function buildCash() {
+  const totalOut = cashTxns.reduce((s,t)=>s+Number(t.amount),0);
+  const bal = OPENING - totalOut;
+  document.getElementById('cashbal').textContent  = peso(bal);
+  document.getElementById('cashopen').textContent = peso(OPENING);
+  document.getElementById('cashrel').textContent  = '−'+peso(totalOut);
+  document.getElementById('cashcnt').textContent  = cashTxns.length;
+
+  let runBal = OPENING, h = '';
+  h += `<div style="background:var(--blue-light);border-radius:10px;padding:12px 14px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;border:1.5px solid #bfdbfe">
+    <span style="color:var(--blue);font-weight:700;font-size:15px">Opening Balance</span>
+    <span style="color:var(--blue);font-weight:800;font-size:15px">${peso(OPENING)}</span>
+  </div>`;
+
+  if (!cashTxns.length) {
+    h += `<div style="text-align:center;padding:30px;color:var(--text-soft)">
+      <div style="font-size:40px;margin-bottom:10px">💸</div>
+      <div style="font-size:16px">No transactions yet.</div>
+      <div style="font-size:14px;margin-top:4px">Tap the + button to add one.</div>
+    </div>`;
+  }
+
+  cashTxns.forEach(t => {
+    runBal -= Number(t.amount);
+    const cs = CATC[t.category]||CATC.Donation;
+    const balColor = runBal >= 5000 ? 'var(--green)' : 'var(--red)';
+    h += `<div class="li">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px">
+        <div style="flex:1">
+          <div class="li-name">${t.recipient}</div>
+          <div class="li-date">${t.txn_date}</div>
+          <span class="badge ${cs.cls}">${t.category}</span>
+          ${t.notes?`<div style="font-size:13px;color:var(--text-soft);margin-top:4px">${t.notes}</div>`:''}
+        </div>
+        <span style="color:var(--red);font-weight:800;font-size:18px;white-space:nowrap">−${peso(t.amount)}</span>
+      </div>
+      <div class="li-bottom">
+        <span class="li-bal" style="color:${balColor}">Balance after: ${peso(runBal)}</span>
+        <div class="li-actions">
+          <button class="btn btn-ghost btn-sm" onclick="editCash('${t.id}')">✏️ Edit</button>
+          <button class="btn btn-red btn-sm" onclick="delCash('${t.id}','${t.recipient.replace(/'/g,"\\'")}')">🗑 Delete</button>
+        </div>
+      </div>
+    </div>`;
+  });
+
+  if (cashTxns.length) {
+    h += `<div class="divider"></div>
+      <div style="display:flex;justify-content:space-between;margin-bottom:8px">
+        <span style="font-size:14px;font-weight:600;color:var(--text-mid)">Total Released</span>
+        <span style="color:var(--red);font-weight:800;font-size:17px">−${peso(totalOut)}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between">
+        <span style="font-size:14px;font-weight:600;color:var(--text-mid)">Current Balance</span>
+        <span style="color:var(--green);font-weight:800;font-size:17px">${peso(bal)}</span>
+      </div>`;
+  }
+  document.getElementById('ledger').innerHTML = h;
+}
+
+// ── Pickers ───────────────────────────────────────────────────────
+function buildPickers() {
+  document.getElementById('msec').innerHTML = SECTIONS.map(s =>
+    `<button class="pc${s===mSec?' active':''}" onclick="setSec(${s})">${s}</button>`).join('');
+  document.getElementById('mmon').innerHTML = MONTHS.map(m =>
+    `<button class="pc${m===mMon?' active':''}" onclick="setMon('${m}')">${m}</button>`).join('');
+  document.getElementById('catpicker').innerHTML = CATS.map(c => {
+    const cs=CATC[c], a=c===mCat;
+    return `<button class="cc${a?' active':''}" onclick="setCat('${c}')"
+      style="${a?'background:'+cs.bg+';border-color:'+cs.fg+';color:'+cs.fg:''}">${c}</button>`;
+  }).join('');
+}
+
+// ── Nav ───────────────────────────────────────────────────────────
+function goTab(tab, btn) {
+  activeTab = tab;
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-'+tab).classList.add('active');
+  document.querySelectorAll('.nb').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('content').scrollTop = 0;
+}
+
+async function setYear(y) {
+  activeYear = y;
+  buildYearTabs();
+  try {
+    contribs = await dbGet('contributions',{year:'eq.'+y,order:'section.asc,month.asc'});
+    buildDash(); buildContrib();
+  } catch(e) { showMsg('cmsg',e.message,false); }
+}
+
+// ── Toggle cell — NULL FIX ────────────────────────────────────────
+async function toggleCell(section, month) {
+  const cur = contribs.find(x => x.section===section && x.month===month);
+  const newPaid = !(cur && cur.paid);
+  const body = {paid: newPaid};
+  if (newPaid) body.paid_date = today();
+
+  try {
+    let data;
+    if (cur && cur.id) {
+      // Row exists — just PATCH it
+      data = await dbUpdate('contributions', cur.id, body);
+      contribs = contribs.map(x => x.id===cur.id ? data : x);
+    } else {
+      // Row doesn't exist yet — INSERT it
+      const insertBody = {section, month, year:activeYear, paid:newPaid};
+      if (newPaid) insertBody.paid_date = today();
+      data = await dbInsert('contributions', insertBody);
+      contribs.push(data);
+    }
+    buildContrib(); buildDash();
+    showMsg('cmsg',`Section ${section} — ${month} ${activeYear}: ${newPaid?'PAID ✓':'UNPAID ✗'}`, newPaid);
+  } catch(e) { showMsg('cmsg',e.message,false); }
+}
+
+// ── Contribution modal ────────────────────────────────────────────
+function openFab() {
+  if (activeTab==='contributions') {
+    document.getElementById('cmodmsg').className='msg';
+    openModal('mod-contrib');
+  } else {
+    cashEditId=null;
+    document.getElementById('cmod-title').textContent='Record Disbursement';
+    document.getElementById('f-date').value=today();
+    document.getElementById('f-amt').value='';
+    document.getElementById('f-rec').value='';
+    document.getElementById('f-notes').value='';
+    document.getElementById('cancel-cash-btn').style.display='none';
+    mCat='Donation'; buildPickers();
+    document.getElementById('cashmodmsg').className='msg';
+    openModal('mod-cash');
+  }
+}
+
+function setSec(s){mSec=s;document.querySelectorAll('#msec .pc').forEach((el,i)=>el.classList.toggle('active',SECTIONS[i]===s));}
+function setMon(m){mMon=m;document.querySelectorAll('#mmon .pc').forEach((el,i)=>el.classList.toggle('active',MONTHS[i]===m));}
+function setStatus(p){
+  mPaid=p;
+  document.getElementById('sbtn-paid').classList.toggle('active',p);
+  document.getElementById('sbtn-unpaid').classList.toggle('active',!p);
+}
+function setCat(c){mCat=c;buildPickers();}
+function openModal(id){document.getElementById(id).classList.add('open');}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+
+async function saveContrib() {
+  try {
+    const cur = contribs.find(x=>x.section===mSec&&x.month===mMon);
+    let data;
+    if (cur && cur.id) {
+      const body = {paid:mPaid};
+      if (mPaid) body.paid_date = today();
+      data = await dbUpdate('contributions', cur.id, body);
+      contribs = contribs.map(x=>x.id===cur.id?data:x);
+    } else {
+      const body = {section:mSec, month:mMon, year:activeYear, paid:mPaid};
+      if (mPaid) body.paid_date = today();
+      data = await dbInsert('contributions', body);
+      contribs.push(data);
+    }
+    closeModal('mod-contrib');
+    buildContrib(); buildDash();
+    showMsg('cmsg',`Section ${mSec} — ${mMon} ${activeYear}: ${mPaid?'PAID ✓':'UNPAID ✗'}`, mPaid);
+  } catch(e) { showMsg('cmodmsg',e.message,false); }
+}
+
+// ── Cash modal ────────────────────────────────────────────────────
+function editCash(id) {
+  const t = cashTxns.find(x=>x.id===id); if(!t) return;
+  cashEditId=id;
+  document.getElementById('cmod-title').textContent='Edit Disbursement';
+  document.getElementById('f-date').value=t.txn_date;
+  document.getElementById('f-amt').value=t.amount;
+  document.getElementById('f-rec').value=t.recipient;
+  document.getElementById('f-notes').value=t.notes||'';
+  document.getElementById('cancel-cash-btn').style.display='flex';
+  mCat=t.category; buildPickers();
+  document.getElementById('cashmodmsg').className='msg';
+  openModal('mod-cash');
+}
+
+async function saveCash() {
+  const txn_date  = document.getElementById('f-date').value;
+  const amount    = parseFloat(document.getElementById('f-amt').value);
+  const recipient = document.getElementById('f-rec').value.trim();
+  const notes     = document.getElementById('f-notes').value.trim();
+  if (!txn_date||isNaN(amount)||amount<=0||!recipient) {
+    showMsg('cashmodmsg','Please fill in Date, Amount and Recipient.',false); return;
+  }
+  try {
+    if (cashEditId) {
+      const data = await dbUpdate('cash_transactions',cashEditId,{txn_date,amount,recipient,category:mCat,notes});
+      cashTxns = cashTxns.map(t=>t.id===cashEditId?data:t);
+      showMsg('cashmsg','Transaction updated successfully.',true);
+    } else {
+      const data = await dbInsert('cash_transactions',{txn_date,amount,recipient,category:mCat,notes});
+      cashTxns.push(data);
+      showMsg('cashmsg',`${peso(amount)} released to ${recipient}.`,true);
+    }
+    closeModal('mod-cash'); buildCash(); buildDash();
+  } catch(e) { showMsg('cashmodmsg',e.message,false); }
+}
+
+function delCash(id, name) {
+  if (!confirm('Delete payment to '+name+'?')) return;
+  dbDelete('cash_transactions',id).then(()=>{
+    cashTxns=cashTxns.filter(t=>t.id!==id);
+    buildCash(); buildDash();
+    showMsg('cashmsg','Transaction deleted.',true);
+  }).catch(e=>showMsg('cashmsg',e.message,false));
+}
+
+// ── Messages ──────────────────────────────────────────────────────
+function showMsg(id,text,ok) {
+  const el=document.getElementById(id);
+  el.textContent=(ok?'✓ ':'⚠ ')+text;
+  el.className='msg show '+(ok?'ok':'err');
+  setTimeout(()=>{el.className='msg';},4000);
+}
+
+// ── Export to Excel ───────────────────────────────────────────────
+async function exportExcel() {
+  const btn = document.getElementById('exportBtn');
+  btn.classList.add('loading');
+  btn.disabled = true;
+
+  try {
+    // Fetch ALL contributions across all years + all cash transactions
+    const [allContribs, allTxns, settingsRows] = await Promise.all([
+      dbGet('contributions', {order:'year.asc,section.asc,month.asc'}),
+      dbGet('cash_transactions', {order:'txn_date.asc,created_at.asc'}),
+      dbGet('settings', {}),
+    ]);
+
+    const openingBal = parseFloat(
+      (settingsRows.find(r=>r.key==='opening_balance')||{value:''+OPENING}).value
+    );
+
+    const wb = XLSX.utils.book_new();
+    const MONTH_IDX = Object.fromEntries(MONTHS.map((m,i)=>[m,i]));
+
+    // ── Helper: style range ──────────────────────────────────────
+    // We'll use !cols for column widths and sheet['!merges'] for merges
+    // Colors via cell.s (requires XLSX Pro) — we'll use a workaround:
+    // write values only (SheetJS free tier doesn't support cell styles);
+    // the data will be clean and usable. Add bold via cell object where possible.
+
+    // ── SHEET 1: Contributions (one sub-table per year) ──────────
+    const cRows = [];
+
+    YEARS.forEach((yr, yi) => {
+      const yrContribs = allContribs.filter(x=>x.year===yr);
+
+      // Year header
+      cRows.push([`BCAT 79 — Contributions ${yr}`]);
+      cRows.push(['Section', ...MONTHS, 'Paid Months', 'Total (₱)']);
+
+      SECTIONS.forEach(s => {
+        const row = [`Section ${s}`];
+        let paidCount = 0;
+        MONTHS.forEach(m => {
+          const c = yrContribs.find(x=>x.section===s && x.month===m);
+          const paid = c ? c.paid : false;
+          row.push(paid ? '✓' : '');
+          if (paid) paidCount++;
+        });
+        row.push(paidCount);
+        row.push(paidCount * FIXED);
+        cRows.push(row);
+      });
+
+      // Column totals row
+      const totRow = ['Total per Month'];
+      let grandPaid = 0;
+      MONTHS.forEach(m => {
+        const count = SECTIONS.filter(s => {
+          const c = yrContribs.find(x=>x.section===s && x.month===m);
+          return c && c.paid;
+        }).length;
+        totRow.push(count > 0 ? count : '');
+        grandPaid += count;
+      });
+      totRow.push(grandPaid);
+      totRow.push(grandPaid * FIXED);
+      cRows.push(totRow);
+
+      // Grand total
+      cRows.push(['Grand Total', ...Array(12).fill(''), '', grandPaid * FIXED]);
+      cRows.push([]); // blank separator between years
+    });
+
+    const csWS = XLSX.utils.aoa_to_sheet(cRows);
+    // Column widths
+    csWS['!cols'] = [
+      {wch:14},  // Section
+      ...MONTHS.map(()=>({wch:5})),
+      {wch:13},  // Paid Months
+      {wch:13},  // Total
+    ];
+    XLSX.utils.book_append_sheet(wb, csWS, 'Contributions');
+
+    // ── SHEET 2: Cash Transactions ────────────────────────────────
+    const txnRows = [
+      ['BCAT 79 — Cash Disbursement Ledger'],
+      ['Date', 'Recipient', 'Category', 'Amount (₱)', 'Balance After (₱)', 'Notes'],
+    ];
+
+    // Opening balance row
+    txnRows.push(['', 'Opening Balance', '', openingBal, openingBal, '']);
+
+    let runBal = openingBal;
+    allTxns.forEach(t => {
+      runBal -= Number(t.amount);
+      txnRows.push([
+        t.txn_date,
+        t.recipient,
+        t.category,
+        Number(t.amount),
+        runBal,
+        t.notes || '',
+      ]);
+    });
+
+    // Summary row at bottom
+    const totalOut = allTxns.reduce((s,t)=>s+Number(t.amount),0);
+    txnRows.push([]);
+    txnRows.push(['', 'Total Released', '', totalOut, '', '']);
+    txnRows.push(['', 'Current Balance', '', '', runBal, '']);
+
+    const txWS = XLSX.utils.aoa_to_sheet(txnRows);
+    txWS['!cols'] = [
+      {wch:12},  // Date
+      {wch:22},  // Recipient
+      {wch:14},  // Category
+      {wch:14},  // Amount
+      {wch:18},  // Balance After
+      {wch:28},  // Notes
+    ];
+    XLSX.utils.book_append_sheet(wb, txWS, 'Cash Ledger');
+
+    // ── SHEET 3: Summary ──────────────────────────────────────────
+    const sumRows = [
+      ['BCAT 79 — Summary Report'],
+      ['Generated', new Date().toLocaleString('en-PH')],
+      [],
+      ['CONTRIBUTIONS SUMMARY'],
+      ['Year', 'Total Paid Months', 'Total Collected (₱)', 'Remaining Months', 'Potential Total (₱)'],
+    ];
+
+    YEARS.forEach(yr => {
+      const yrC = allContribs.filter(x=>x.year===yr);
+      const paidMonths = yrC.filter(x=>x.paid).length;
+      const totalSections = SECTIONS.length;
+      const totalMonths = totalSections * MONTHS.length;
+      const remaining = totalMonths - paidMonths;
+      sumRows.push([yr, paidMonths, paidMonths * FIXED, remaining, totalMonths * FIXED]);
+    });
+
+    const allPaid = allContribs.filter(x=>x.paid).length;
+    sumRows.push(['All Years Total', allPaid, allPaid * FIXED, '', '']);
+    sumRows.push([]);
+
+    sumRows.push(['CASH SUMMARY']);
+    sumRows.push(['Opening Balance (₱)', openingBal]);
+    sumRows.push(['Total Disbursed (₱)', allTxns.reduce((s,t)=>s+Number(t.amount),0)]);
+    sumRows.push(['Current Balance (₱)', openingBal - allTxns.reduce((s,t)=>s+Number(t.amount),0)]);
+    sumRows.push(['Total Transactions', allTxns.length]);
+    sumRows.push([]);
+
+    sumRows.push(['DISBURSEMENTS BY CATEGORY']);
+    sumRows.push(['Category', 'Count', 'Total Amount (₱)']);
+    CATS.forEach(cat => {
+      const catTxns = allTxns.filter(t=>t.category===cat);
+      sumRows.push([cat, catTxns.length, catTxns.reduce((s,t)=>s+Number(t.amount),0)]);
+    });
+
+    const smWS = XLSX.utils.aoa_to_sheet(sumRows);
+    smWS['!cols'] = [{wch:26},{wch:22},{wch:22},{wch:20},{wch:20}];
+    XLSX.utils.book_append_sheet(wb, smWS, 'Summary');
+
+    // ── Download ─────────────────────────────────────────────────
+    const dateStr = new Date().toISOString().slice(0,10);
+    XLSX.writeFile(wb, `BCAT79_Report_${dateStr}.xlsx`);
+
+    showMsg('cashmsg', 'Excel report downloaded successfully! ✓', true);
+  } catch(e) {
+    showMsg('cashmsg', 'Export failed: ' + e.message, false);
+    console.error(e);
+  } finally {
+    btn.classList.remove('loading');
+    btn.disabled = false;
+  }
+}
+
+// ── Print Report ──────────────────────────────────────────────────
+function printReport() {
+  const now = new Date();
+  const dateStr = now.toLocaleDateString('en-PH',{year:'numeric',month:'long',day:'numeric'});
+  const timeStr = now.toLocaleTimeString('en-PH',{hour:'2-digit',minute:'2-digit'});
+  const subtitle = `Printed: ${dateStr} ${timeStr}  •  Year: ${activeYear}`;
+
+  document.getElementById('print-contrib-subtitle').textContent = subtitle;
+  document.getElementById('print-cash-subtitle').textContent = subtitle;
+
+  // Mark both pages as print-active so they both appear (contributions first, cash second)
+  const pgC = document.getElementById('page-contributions');
+  const pgCash = document.getElementById('page-cash');
+
+  // Add page-break div between sections if not already there
+  let breaker = document.getElementById('print-page-break');
+  if (!breaker) {
+    breaker = document.createElement('div');
+    breaker.id = 'print-page-break';
+    breaker.className = 'page-break';
+    pgCash.parentNode.insertBefore(breaker, pgCash);
+  }
+
+  // Temporarily make both visible for print
+  pgC.classList.add('print-active');
+  pgCash.classList.add('print-active');
+
+  window.print();
+
+  // Restore after print dialog closes
+  setTimeout(() => {
+    pgC.classList.remove('print-active');
+    pgCash.classList.remove('print-active');
+  }, 1000);
+}
+
+boot();
+</script>
+</body>
+</html>
